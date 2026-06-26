@@ -69,9 +69,8 @@ export default function Home() {
 
           {/* Tagline */}
           <p className="tagline-deboss font-display text-[clamp(15px,2.4vw,28px)] text-center leading-[1.45] max-w-[80%] mt-[1.5em]">
-            The most magnetic brands aren&apos;t created.
-            <br />
-            They&apos;re <em className="italic text-emerald">uncovered.</em>
+            The most magnetic brands aren&apos;t created. They&apos;re{" "}
+            <em className="italic text-emerald">uncovered.</em>
           </p>
 
           {/* CTA */}

@@ -1,23 +1,14 @@
 @import "tailwindcss";
 
-/*
-  THE YOU BRAND — Design Tokens
-  Bold · Warm · Human
-  Six colors, three voices. Brights are punctuation, never wallpaper.
-*/
-
 @theme {
-  /* ---- Color palette ---- */
-  --color-ink: #17140F;       /* Anchor — primary text, dark grounds, the wordmark */
-  --color-emerald: #0F8366;   /* Primary accent — buttons, links, key fills */
-  --color-coral: #F1592A;     /* The "you" highlight — energy, emphasis, CTAs */
-  --color-golden: #F3C13C;    /* Optimism — highlights, badges, blocks on dark */
-  --color-blush: #F7B6AD;     /* Soft accent — large background blocks */
-  --color-bone: #FBF7F0;      /* Background — warm off-white, the default page */
-
-  /* ---- Typography ---- */
-  --font-display: "Playfair Display", serif;        /* headlines */
-  --font-body: "Hanken Grotesque", system-ui, sans-serif; /* body & UI */
+  --color-ink: #17140F;
+  --color-emerald: #0F8366;
+  --color-coral: #F1592A;
+  --color-golden: #F3C13C;
+  --color-blush: #F7B6AD;
+  --color-bone: #FBF7F0;
+  --font-display: "Playfair Display", serif;
+  --font-body: "Hanken Grotesque", system-ui, sans-serif;
 }
 
 :root {
@@ -26,17 +17,19 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: url("/hero-texture.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--foreground);
   font-family: var(--font-body);
 }
 
-/*
-  Debossed wordmark — pressed into the paper texture, tone-on-tone.
-  Light source top-left: highlight on lower-right rim, shadow in upper-left groove.
-*/
+/* Debossed wordmark — pressed into the paper */
 .deboss {
-  color: #cabfa6; /* sampled mid-tone of the hero paper */
+  color: #cabfa6;
   text-shadow:
     1px 1px 1px rgba(255, 255, 255, 0.65),
     -1px -1px 1px rgba(120, 100, 70, 0.5),
@@ -48,4 +41,26 @@ body {
   text-shadow:
     1px 1px 1px rgba(255, 255, 255, 0.65),
     -0.5px -0.5px 1px rgba(120, 100, 70, 0.5);
+}
+
+/* Embossed buttons — raised off the surface, light from top-left */
+.btn-emboss {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 3px rgba(0, 0, 0, 0.18),
+    0 4px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-emboss:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 3px 5px rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.14);
+}
+.btn-emboss:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.12);
 }
