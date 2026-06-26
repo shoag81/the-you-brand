@@ -17,6 +17,8 @@ export default function Questionnaire() {
   const [fullName, setFullName] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [brief, setBrief] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -24,6 +26,24 @@ export default function Questionnaire() {
 
   const update = (key: string, value: string) =>
     setAnswers(prev => ({ ...prev, [key]: value }))
+
+  const generateBrief = async () => {
+    setGenerating(true)
+    try {
+      const payload = { fullName, businessName, hasBrand, ...answers }
+      const res = await fetch('/api/generate-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      setBrief(data.brief)
+    } catch {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   const fieldClass =
     'w-full border border-black/10 rounded-xl p-4 text-ink bg-white/70 font-body focus:outline-none focus:border-emerald resize-none'
@@ -43,6 +63,28 @@ export default function Questionnaire() {
         value={answers[keyName] || ''} onChange={e => update(keyName, e.target.value)} />
     </div>
   )
+
+  // ---------- BRIEF RESULT VIEW ----------
+  if (brief) {
+    return (
+      <main className="min-h-screen px-6 py-12">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-extrabold text-ink mb-6 font-display">
+            Your <span className="italic text-coral">you</span> brand brief.
+          </h1>
+          <div className="bg-bone/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
+            <pre className="whitespace-pre-wrap font-body text-ink text-sm leading-relaxed">
+              {JSON.stringify(brief, null, 2)}
+            </pre>
+          </div>
+          <button onClick={() => setBrief(null)}
+            className="btn-emboss mt-8 px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium">
+            ← Back to questionnaire
+          </button>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen px-6 py-12">
@@ -304,8 +346,9 @@ export default function Questionnaire() {
               {step === 0 ? 'Begin' : 'Next'}
             </button>
           ) : (
-            <button className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold">
-              Generate My Brand Brief →
+            <button onClick={generateBrief} disabled={generating}
+              className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold disabled:opacity-50">
+              {generating ? 'Creating your brief…' : 'Generate My Brand Brief →'}
             </button>
           )}
         </div>
