@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Hanken_Grotesque, Allura } from "next/font/google";
+import { Playfair_Display, Hanken_Grotesque } from "next/font/google";
 import "./globals.css";
 
 // Display / headline voice — high-contrast editorial serif.
@@ -19,14 +19,6 @@ const hanken = Hanken_Grotesque({
   display: "swap",
 });
 
-// Accent / script voice — decorative only, never body or buttons.
-const allura = Allura({
-  variable: "--font-script",
-  subsets: ["latin"],
-  weight: ["400"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "The You Brand — Discover. Define. Become.",
   description:
@@ -41,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${hanken.variable} ${allura.variable} h-full antialiased`}
+      className={`${playfair.variable} ${hanken.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
