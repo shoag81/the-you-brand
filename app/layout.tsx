@@ -1,23 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Hanken_Grotesque } from "next/font/google";
 import "./globals.css";
-
-// Display / headline voice — high-contrast editorial serif.
-const playfair = Playfair_Display({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["700", "800"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-// Body / UI voice — the warm grotesque workhorse.
-const hanken = Hanken_Grotesque({
-  variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "The You Brand — Discover. Define. Become.",
@@ -31,10 +13,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${hanken.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Hanken+Grotesque:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
