@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import BrandBrief from './BrandBrief'
 
 const sections = [
   { title: 'Your Origin Story' },
@@ -69,24 +70,7 @@ export default function Questionnaire() {
   const progress = (step / sections.length) * 100
 
   if (brief) {
-    return (
-      <main className="min-h-screen px-6 py-12">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-extrabold text-ink mb-6 font-display">
-            Your <span className="italic text-coral">you</span> brand brief.
-          </h1>
-          <div className="bg-bone/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
-            <pre className="whitespace-pre-wrap font-body text-ink text-sm leading-relaxed">
-              {JSON.stringify(brief, null, 2)}
-            </pre>
-          </div>
-          <button onClick={() => setBrief(null)}
-            className="btn-emboss mt-8 px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium">
-            ← Back to questionnaire
-          </button>
-        </div>
-      </main>
-    )
+    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} onBack={() => setBrief(null)} />
   }
 
   return (
@@ -159,7 +143,7 @@ export default function Questionnaire() {
                 placeholder="Before this I spent twelve years in corporate marketing..." />
               <Field {...f('turningPoint')} label="What was the turning point?"
                 help="Every great origin story has a moment — a decision, a loss, a conversation, a realization. What was yours? The more specific you can be, the better."
-                placeholder="The week I got passed over for a promotion, I photographed a brand shoot for a friend. She booked four clients from the photos. Something clicked..." />
+                placeholder="The week I got passed over for a promotion, I photographed a brand shoot for a friend. She booked four clients. Something clicked..." />
               <Field {...f('hardWay')} label="What did you have to figure out the hard way?"
                 help="What did you struggle with that your clients are struggling with now? The empathy in your brand comes from having been where they are."
                 placeholder="I spent two years undercharging because I didn't believe my work was worth more..." />
