@@ -1,346 +1,84 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import BrandBrief from './BrandBrief'
 
-const sections = [
-  { title: 'Your Origin Story' },
-  { title: "Your Client's Story" },
-  { title: 'Your Voice' },
-  { title: 'Your Vision' },
-  { title: 'Your Style' },
-  { title: 'Your Photography' },
-]
-
-const fieldClass =
-  'w-full border border-black/10 rounded-xl p-4 text-ink bg-white/70 font-body focus:outline-none focus:border-emerald resize-none'
-const labelClass = 'block text-base font-bold text-ink mb-1 font-body'
-const helpClass = 'text-sm text-ink/60 mb-3 font-body leading-relaxed'
-const inputClass =
-  'w-full border border-black/10 rounded-xl p-4 text-ink bg-white/70 font-body focus:outline-none focus:border-emerald'
-
-function Field({ label, help, rows = 4, value, onChange, placeholder }:
-  { label: string; help: string; rows?: number; value: string; onChange: (v: string) => void; placeholder: string }) {
-  return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <p className={helpClass}>{help}</p>
-      <textarea className={fieldClass} rows={rows} placeholder={placeholder}
-        value={value} onChange={e => onChange(e.target.value)} />
-    </div>
-  )
+const myBrief = {
+  "howToUseThisBrief": {
+    "intro": "Sarah, this is your brand's north star. Everything you write, post, pitch, and publish from here forward should feel like it came from this document. Read it once all the way through, then come back to it section by section as you build. This isn't a one-time exercise — it's a living reference you'll return to every time you feel yourself drifting into comparison mode.",
+    "steps": [
+      "Update every bio you have — Instagram, LinkedIn, website, Google Business — using the Brand in One Sentence and the StoryBrand Bio as your foundation. Consistency is credibility.",
+      "Update your email signature and drop your signature logo concept there. Every email you send is a brand touchpoint.",
+      "Open a new project in Claude.ai or ChatGPT, paste this entire brief into the project instructions, and tell it 'This is my brand voice and strategy — write all my content from this.' You will never stare at a blank screen again.",
+      "Hand the Photography Shot List to your photographer (or use it to direct your own next shoot). These aren't poses — they're stories.",
+      "Share the Visual Direction section with your web designer or use it yourself as the filter for every image, color, and font choice as you refresh sarahhoagphotography.com.",
+      "Pull your Content Pillars and the ready-to-go Social Captions to plan your next month of posts. Batch it, schedule it, stop improvising.",
+      "Print the 90-Day Plan or drop it into your project management tool. Review it every Monday morning so the momentum doesn't quietly disappear."
+    ]
+  },
+  "brandInOneSentence": "Sarah Hoag helps multi-passionate women entrepreneurs get so clear on who they are and what they do that their photos, their words, and their whole online presence finally work together — and actually bring people in.",
+  "storyBrandBio": "You built something real. Maybe more than one something. But somewhere between the offerings, the platforms, and the daily grind of showing up online, your message got muddy — and you know it. You're working hard, but it doesn't always feel like it's working. You're not alone in that, and it's not a talent problem.\n\nSarah Hoag has spent nearly 20 years behind a camera — and the last eight of those obsessing over why some business owners connect instantly with their audience while others stay invisible no matter how beautiful their photos are. The answer, she learned after rebuilding her own business from scratch after a cross-country move, isn't better lighting. It's clarity.\n\nSarah works with women who are wearing every hat in their business and need someone to help them see themselves the way their best clients already do: as the obvious, undeniable answer to a very specific problem. She combines real photography, AI-assisted messaging, and deep branding strategy to help you show up with confidence — on camera, online, and in every conversation that matters.\n\nWhen the message is clear, everything gets easier. The right people find you. The wrong ones stop wasting your time. And you stop second-guessing whether any of it is working.\n\nIf you've been building in sideways directions and you're ready to finally move forward, Sarah would love to help you figure out exactly what to say — and make sure the world can actually see it.",
+  "originStory": "Sarah didn't set out to build a photography business. She set out to figure out what was next.\n\nShe had just finished her theology degree — the kind of education that teaches you to ask the big questions — when her dad died. He was an amateur photographer, and when Sarah eventually asked her mom for his camera, she wasn't thinking about business. She was thinking about him.\n\nShe'd married and moved, landed at a church job, and started photographing the people around her the way her dad had: because they were worth documenting. Kids, families, moments. People started asking. Weddings followed. A business assembled itself almost by accident, built entirely on the instinct that people deserve to be seen well.\n\nFor a decade, it worked. She built a solid wedding photography business in California, raised three kids, stayed rooted. And then life moved her to Arizona — to Litchfield Park, a town she'd come to genuinely love — and the business she'd spent ten years building was essentially gone. She had to start over. In a market she didn't know. And for the first time, the comparison got loud enough to make her want to stop.\n\nInstead of quitting, she went deep. She immersed herself in marketing and branding, not to learn tricks, but to find the thing that couldn't be competed with: herself. That's when something shifted. She realized the photos were never really the product. The clarity was. The confidence. The ability to look at a business owner and help them see what makes them irreplaceable — and then build images and words that actually show it.\n\nNearly 20 years after picking up her father's camera, Sarah Hoag Photography isn't just a photography business. It's a branding practice with a camera. And the lens her dad left her is still in the mix.",
+  "idealClient": "Your ideal client is the woman who has built real things — maybe more than one — and still feels like she can't explain what she does without rambling. She's a serial entrepreneur, a multi-hyphenate, someone whose work doesn't fit in a box and whose online presence reflects that chaos in ways she hates. She's not a beginner. She's experienced, driven, deeply capable — and quietly exhausted by the feeling that she's working hard without going anywhere meaningful.\n\nShe doesn't have imposter syndrome because she lacks skill. She has it because she's never had a clear mirror. No one has helped her see herself the way her best clients see her. She wants her message to click — for her own sanity as much as for the people she's trying to reach.\n\nShe's in her 30s to 50s. She probably lives somewhere warm and aspirational. She's on Instagram more than she wants to be. She's curious about AI but hasn't figured out how to make it work for her yet.\n\nShe doesn't need someone to make her look pretty. She needs someone to help her make sense — and then make it beautiful.",
+  "brandVoice": {
+    "descriptors": ["Warm but direct", "Experienced without being superior", "Specific", "Encouraging in a way that moves people", "A little bold"],
+    "guide": "Sarah, your voice is the way you actually talk to a friend who needs real help — not therapy-speak, not hustle-culture hype. You're the person at the coffee shop who says 'okay, here's what I actually think is going on' and then tells them. You put people at ease and then guide them somewhere specific.\n\nYour voice is NOT: corporate, formal, overly polished, or full of photography industry jargon. It is NOT the soft-focus inspirational caption style. It does not hedge or apologize.",
+    "examples": [
+      "Most business owners have beautiful photos and a message that isn't working. Those two things are related — and fixable.",
+      "I'm not here to make you look good. I'm here to help you make sense. (The looking good part tends to follow.)",
+      "You don't have a visibility problem. You have a clarity problem. Let's fix that first."
+    ]
+  },
+  "pointOfView": "Sarah Hoag Photography stands against comparison culture — the idea that you need to look at what every other photographer, every other brand strategist, every other business owner is doing and measure yourself against it. Comparison doesn't motivate, it erodes. It turns genuinely original people into pale imitations of whoever's trending this month.\n\nThe cure for comparison is specificity: knowing so clearly who you are, what you do, and why it matters that there's simply no one to compare yourself to. That's the work. Not better photos. Clarity first — then everything else.",
+  "contentPillars": [
+    {"pillar": "Clarity Before Camera", "description": "Content here challenges the idea that better photos solve a messaging problem, and makes the case that clarity comes first — before the shoot, before the rebrand, before anything."},
+    {"pillar": "The Real Origin", "description": "Your story — your dad's camera, the theology degree, the cross-country restart, the comparison spiral and the way out — is proof of method, not just backstory."},
+    {"pillar": "AI + Photography, Together", "description": "Your forward-facing differentiator. Most photographers aren't talking credibly about AI. You sit at that intersection in a genuinely interesting way."},
+    {"pillar": "Seen and Sold", "description": "Practical, educational content about what makes brand photography actually convert — not just look good."},
+    {"pillar": "The Woman Behind the Business", "description": "Your life in Litchfield Park, your pitbulls, your daughter on shoots — this content makes you a real person, not a logo."}
+  ],
+  "visualDirection": {
+    "moodDescription": "The brand lives at the intersection of classic and current — mid-century modern bones with a distinctly Arizona warmth. Think Mountain Shadows at golden hour: clean lines, rich organic textures, the kind of palette that photographs beautifully in bright desert light. Nothing muted, nothing washed out. Boutique-hotel confident.",
+    "colors": [
+      {"name": "Desert Midnight", "hex": "#1A1A1A", "usage": "Primary anchor — headlines, logo mark, high-contrast type."},
+      {"name": "Warm Parchment", "hex": "#F5F0E8", "usage": "Primary background — replaces stark white for a warmer, editorial feel."},
+      {"name": "Aged Brass", "hex": "#C9A84C", "usage": "The brand's signature accent. Dividers, hover states, logo details."},
+      {"name": "Sonoran Emerald", "hex": "#2D6A4F", "usage": "Your bold differentiator. CTA buttons, pull quotes, section headers."},
+      {"name": "Palm Shadow", "hex": "#4A5240", "usage": "A muted olive-green secondary — supporting text and subtle backgrounds."},
+      {"name": "Terracotta Dust", "hex": "#C4714A", "usage": "The Arizona earth note. Use sparingly — overlays, seasonal content."}
+    ],
+    "typographyFeel": "Serif headlines with architectural weight — something that feels like a well-designed hotel lobby plaque, not a wedding invitation. Pair with a clean geometric sans-serif for body text. Avoid anything script, overly decorative, or thin to the point of disappearing."
+  },
+  "photographyShotList": {
+    "intro": "This is not a headshot checklist. Your photographer already knows how to pose you, light you, and get the hero shots. What follows are story concepts — specific moments and moods designed to communicate who Sarah Hoag is and what she does before a single word is read.",
+    "concepts": [
+      {"concept": "The Camera That Started It All", "mode": "emotional", "purpose": "A quiet, close image of your hands holding your dad's camera. This image tells the origin story without a single word."},
+      {"concept": "Laptop, Coffee, Pitbulls", "mode": "connection", "purpose": "Your real morning desk setup — computer open, coffee nearby, at least one pitbull visible. This is your daily life and the laptop lifestyle you're building toward."},
+      {"concept": "The Director", "mode": "educational", "purpose": "You, mid-shoot, directing a client. This shows people what it actually feels like to work with you: guided, warm, collaborative."},
+      {"concept": "The Pool Break", "mode": "connection", "purpose": "A candid, summery shot by the pool. Arizona living, owned."},
+      {"concept": "AI at Work", "mode": "educational", "purpose": "You at your computer, focus-meets-curiosity. Anchors your AI content pillar without needing a caption."},
+      {"concept": "Daughter on Set", "mode": "connection", "purpose": "A candid moment with your daughter on location. Communicates family, longevity, passing things forward."},
+      {"concept": "Bold Color, Her Way", "mode": "emotional", "purpose": "A fashion-forward full-length image in a boutique hotel space. Proof of concept for clients: she knows how to make a person look intentional."},
+      {"concept": "The Strategist at the Table", "mode": "educational", "purpose": "You seated at a beautiful table with a notebook, thinking. The image that separates you from photographers who just show up and shoot."}
+    ]
+  },
+  "websiteImagePlan": "Your website refresh needs to make a first-time visitor feel the clarity that you sell. HOMEPAGE HERO: the 'bold color' boutique hotel shot. ABOUT: lead with 'Camera That Started It All,' then 'The Director' mid-page. SERVICES: one image per category. FOOTER: end on real and human — the 'Pitbull Office Hour.'",
+  "socialCaptions": [
+    "Most business owners I meet have beautiful photos. And a message that isn't working. Those two things are related — and they're both fixable. The photos didn't fail you. The clarity wasn't there yet.",
+    "I didn't plan to be a photographer. My dad was — an amateur who saw people the way they wanted to be seen. When he died, my mom gave me his camera. Twenty years later, I'm still doing exactly what he was doing. I just added strategy to it.",
+    "Clarity before camera. Always. A photo that doesn't answer 'what do you do, who's it for, how do they feel' is just a really expensive decoration."
+  ],
+  "ninetyDayPlan": [
+    {"phase": "Days 1-30: Foundations", "focus": "Get every brand touchpoint aligned with who you actually are now.", "actions": ["Update every bio using your Brand in One Sentence and Bio.", "Drop this brief into a Claude or ChatGPT project as your brand bible.", "Book your brand photography session — bring the Shot List.", "Audit your website; fix the homepage hero, About, and Services first."]},
+    {"phase": "Days 31-60: Visibility", "focus": "Show up consistently with the new messaging.", "actions": ["Launch a posting schedule using the five Content Pillars.", "Introduce your AI workflow publicly.", "Complete your website refresh with new imagery and copy.", "Reach out to three past clients for clarity-framed testimonials."]},
+    {"phase": "Days 61-90: Scale", "focus": "Convert visibility into leads; move toward the online-forward model.", "actions": ["Launch a simple online offer — a messaging clarity session or virtual brand audit.", "Build an email list entry point.", "Plan your 20-year anniversary content.", "Identify one collaboration or visibility opportunity."]}
+  ],
+  "signatureLogoConcepts": [
+    {"name": "The Lens and the Palm", "description": "An evolution of your existing logo DNA — the two palm trees refined into a clean geometric mark, with a subtle camera lens element integrated within.", "prompt": "Minimal vector logo mark, two abstract geometric palm silhouettes symmetrically flanking a subtle circular lens aperture shape, mid-century modern style, warm gold and deep black, boutique hotel aesthetic, white background, no text"},
+    {"name": "The Initial Monogram", "description": "A sophisticated SH monogram as a single interlocking mark — the kind you'd emboss on stationery or stamp in gold foil.", "prompt": "Elegant interlocking SH monogram, serif-influenced, mid-century modern, aged brass and near-black, suitable for embossing or foil stamp, white background, no additional elements"},
+    {"name": "The Desert Frame", "description": "A rectangular frame with subtle Arizona landscape detail built into the border — a horizon line, a single palm. Communicates what you do: building the frame through which people see themselves clearly.", "prompt": "Minimal rectangular frame logo with subtle Arizona horizon line in the bottom border, single abstract palm at one corner, mid-century modern, emerald green and aged gold on cream, no text, usable as a photography watermark"}
+  ]
 }
 
 export default function Questionnaire() {
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [fullName, setFullName] = useState('')
-  const [businessName, setBusinessName] = useState('')
-  const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
-  const [generating, setGenerating] = useState(false)
-  const [brief, setBrief] = useState<Record<string, unknown> | null>(null)
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [step])
-
-  const f = (key: string) => ({
-    value: answers[key] || '',
-    onChange: (v: string) => setAnswers(prev => ({ ...prev, [key]: v })),
-  })
-
-  const generateBrief = async () => {
-    setGenerating(true)
-    try {
-      const payload = { fullName, businessName, hasBrand, ...answers }
-      const res = await fetch('/api/generate-brief', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json()
-      setBrief(data.brief)
-    } catch {
-      alert('Something went wrong. Please try again.')
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  const progress = (step / sections.length) * 100
-
-  if (brief) {
-    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} onBack={() => setBrief(null)} />
-  }
-
-  return (
-    <main className="min-h-screen px-6 py-12">
-      <div className="max-w-2xl mx-auto">
-
-        {step > 0 && (
-          <>
-            <h1 className="text-4xl font-extrabold text-ink mb-2 font-display">
-              Discover the <span className="italic text-coral">you</span> brand.
-            </h1>
-            <p className="text-emerald mb-8 font-body">
-              {sections[step - 1].title} — Section {step} of {sections.length}
-            </p>
-            <div className="w-full bg-black/10 rounded-full h-2 mb-10">
-              <div className="bg-coral h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }} />
-            </div>
-          </>
-        )}
-
-        <div className="bg-bone/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg space-y-8">
-
-          {step === 0 && (
-            <div className="space-y-6">
-              <h1 className="text-4xl font-extrabold text-ink font-display leading-tight">
-                Welcome. Let&apos;s uncover the <span className="italic text-coral">you</span> brand.
-              </h1>
-              <p className="font-body text-ink/80 leading-relaxed">
-                This isn&apos;t a form — it&apos;s closer to a conversation. Over the next few sections,
-                I&apos;ll ask you about your story, the people you serve, your voice, your vision, your
-                style, and how you want to show up. Think of it as career therapy: the more you share,
-                the more your brand will sound like <em>you</em>.
-              </p>
-              <p className="font-body text-ink/80 leading-relaxed">
-                There are no right answers. Don&apos;t write what sounds impressive — write what&apos;s
-                true. The unexpected, personal details are usually the ones that make people fall in love
-                with a brand. Nothing is too small to mention.
-              </p>
-              <p className="font-body text-ink/80 leading-relaxed">
-                And if you&apos;re not quite in the role you want yet — answer as the version of you who
-                already is. That&apos;s how you start to become her.
-              </p>
-              <div className="pt-2 space-y-4">
-                <div>
-                  <label className={labelClass}>What&apos;s your full name?</label>
-                  <p className={helpClass}>We&apos;ll use this to personalize your brand brief and signature logo concepts.</p>
-                  <input className={inputClass} placeholder="Jane Rivera"
-                    value={fullName} onChange={e => setFullName(e.target.value)} />
-                </div>
-                <div>
-                  <label className={labelClass}>What&apos;s your business or brand name? (optional)</label>
-                  <p className={helpClass}>If you have one. If not, no worries — we&apos;ll help you find it.</p>
-                  <input className={inputClass} placeholder="Rivera Creative Co."
-                    value={businessName} onChange={e => setBusinessName(e.target.value)} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 1 && (
-            <>
-              <p className="font-body text-ink/70 leading-relaxed italic">
-                Let&apos;s start with you. Your backstory is the one thing no competitor can copy — the
-                specific journey that brought you here. Be generous with the details; this is the soul of
-                your brand.
-              </p>
-              <Field {...f('before')} label="Where did your story begin?"
-                help="What were you doing before this work? What chapter came before the one you're in now?"
-                placeholder="Before this I spent twelve years in corporate marketing..." />
-              <Field {...f('turningPoint')} label="What was the turning point?"
-                help="Every great origin story has a moment — a decision, a loss, a conversation, a realization. What was yours? The more specific you can be, the better."
-                placeholder="The week I got passed over for a promotion, I photographed a brand shoot for a friend. She booked four clients. Something clicked..." />
-              <Field {...f('hardWay')} label="What did you have to figure out the hard way?"
-                help="What did you struggle with that your clients are struggling with now? The empathy in your brand comes from having been where they are."
-                placeholder="I spent two years undercharging because I didn't believe my work was worth more..." />
-              <Field {...f('life')} label="Tell me about your life." rows={6}
-                help="Where do you live? Are you married? Do you have kids? Pets? What do you do when you're not working — hobbies, obsessions, guilty pleasures? What would surprise people about you? Nothing is too small or too personal."
-                placeholder="I live in Scottsdale with my husband and our two golden retrievers, Biscuit and Gravy. I'm a wine nerd and aggressively competitive at pickleball..." />
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <p className="font-body text-ink/70 leading-relaxed italic">
-                Here&apos;s a secret most people get backwards: your brand isn&apos;t really about you —
-                it&apos;s about the person you serve. They&apos;re the hero of the story. You&apos;re the
-                guide who helps them win. Let&apos;s get crystal clear on who they are.
-              </p>
-              <Field {...f('hero')} label="Who is the person you most want to help?"
-                help="Picture one real person, not a demographic. The more specific you get, the stronger your brand becomes."
-                placeholder="She's a coach in her late 30s who's brilliant at what she does but invisible online..." />
-              <Field {...f('want')} label="What do they want?"
-                help="What are they actively trying to achieve or become?"
-                placeholder="She wants to be seen as the go-to expert in her field..." />
-              <Field {...f('externalProblem')} label="What problem do you solve for them — the obvious one?"
-                help="The visible, practical problem. The thing they'd name out loud."
-                placeholder="Her website and social media don't reflect how good she actually is..." />
-              <Field {...f('internalProblem')} label="And how does that problem make them feel?"
-                help="The deeper, internal struggle underneath the surface problem. This is where real connection lives."
-                placeholder="She feels like a fraud — like everyone else figured out this 'visibility' thing and she missed the memo..." />
-              <Field {...f('stakes')} label="What's at stake if nothing changes?"
-                help="What does it cost them to stay stuck? What do they miss out on?"
-                placeholder="She keeps watching less-talented people get the clients and recognition..." />
-              <Field {...f('after')} label="What does their life look like after working with you?"
-                help="Paint the transformation. Who do they become? How do they feel?"
-                placeholder="She finally has a brand that looks as good as her work is. Clients find her and trust her before the first call..." />
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <p className="font-body text-ink/70 leading-relaxed italic">
-                Your voice is your personality made visible in words. The test: could someone read your
-                content with your name removed and still know it&apos;s you? Let&apos;s find that voice.
-              </p>
-              <Field {...f('personalityWords')} label="Pick a few words that describe your brand personality." rows={2}
-                help="Not what sounds good — what's actually true to how you show up. Three to five words."
-                placeholder="Warm, direct, a little irreverent, deeply encouraging..." />
-              <Field {...f('textingFriend')} label="Text a friend about what you do — for real." rows={5}
-                help="Imagine a good friend just asked 'wait, what do you actually do?' Type your reply exactly how you'd text it — casual, real, however you actually talk. Don't clean it up."
-                placeholder="ok so basically i help people who are amazing at their job but terrible at talking about themselves lol..." />
-              <Field {...f('standAgainst')} label="What do you stand against?"
-                help="Every strong brand has an enemy — not a person, but an idea or a broken way of doing things. What do you push back on?"
-                placeholder="I stand against the idea that you have to be loud or fake to be visible..." />
-              <Field {...f('existingContent')} label="Paste a piece of content you've written that felt like you." rows={5}
-                help="A post, email, caption, anything that sounded authentically like you. If you don't have one, skip it."
-                placeholder="Paste anything here, or leave blank..." />
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <p className="font-body text-ink/70 leading-relaxed italic">
-                Let&apos;s look forward for a moment. Your brand isn&apos;t just where you&apos;ve been —
-                it&apos;s where you&apos;re going. Your goals shape the look, the content, and everything
-                we build from here.
-              </p>
-              <Field {...f('howSeen')} label="How do you want to be seen in your industry?"
-                help="When people in your field think of you, what do you want them to think? What do you want to be known for?"
-                placeholder="I want to be the go-to interior designer for warm, livable homes — known for spaces that feel collected, not staged..." />
-              <Field {...f('accomplish')} label="What do you want to accomplish?"
-                help="Think near-term and long-term. Goals, dreams, the big vision — revenue, reach, impact, lifestyle."
-                placeholder="In the next year: a fully booked client roster and a waitlist. Long-term: a book, a podcast, and speaking on bigger stages..." />
-              <Field {...f('horizon')} label="Is there anything specific on the horizon?" rows={3}
-                help="A launch, a milestone, a pivot, a big goal with a date on it? This helps us plan your visuals and content around what's coming."
-                placeholder="I'm launching a group program in the fall and celebrating 10 years in business next spring..." />
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <p className="font-body text-ink/70 leading-relaxed italic">
-                Now the look and feel. Voice comes before visuals — which is why we did that first. Your
-                style should express the brand we&apos;ve already uncovered.
-              </p>
-
-              {hasBrand === null && (
-                <div className="space-y-4">
-                  <p className="font-body text-ink font-bold">
-                    Do you already have brand visuals (logo, colors, website), or are you starting fresh?
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button onClick={() => setHasBrand('existing')}
-                      className="btn-emboss flex-1 px-6 py-4 rounded-xl bg-bone border border-ink/20 text-ink font-body font-medium">
-                      I have an existing brand
-                    </button>
-                    <button onClick={() => setHasBrand('fresh')}
-                      className="btn-emboss flex-1 px-6 py-4 rounded-xl bg-bone border border-ink/20 text-ink font-body font-medium">
-                      I&apos;m starting fresh
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {hasBrand === 'existing' && (
-                <>
-                  <button onClick={() => setHasBrand(null)} className="text-sm text-emerald font-body underline">← switch answer</button>
-                  <Field {...f('existingDescribe')} label="Describe your current brand."
-                    help="Colors, fonts, overall vibe, where it lives. Drop links if you have them."
-                    placeholder="Warm neutrals, a serif logo, my website is at..." />
-                  <Field {...f('existingWorking')} label="What's working about it?"
-                    help="What do you love? What gets compliments?"
-                    placeholder="People always say my photos feel warm and approachable..." />
-                  <Field {...f('existingNotWorking')} label="What feels off, or could be stronger?"
-                    help="Be honest. Where does it fall short of how good you actually are?"
-                    placeholder="My logo feels dated and my colors don't feel like 'me' anymore..." />
-                </>
-              )}
-
-              {hasBrand === 'fresh' && (
-                <>
-                  <button onClick={() => setHasBrand(null)} className="text-sm text-emerald font-body underline">← switch answer</button>
-                  <Field {...f('brandReferences')} label="Whose brand or aesthetic do you admire?"
-                    help="Brands, people, accounts — in any industry. What draws you to them?"
-                    placeholder="I love the warmth of Magnolia, the editorial feel of Kinfolk, the boldness of Glossier..." />
-                  <Field {...f('hospitality')} label="If your brand were a hotel or restaurant, what would it be?"
-                    help="This unlocks a feeling fast. A cozy wine bar? A sleek minimalist spa? A sunlit coastal cafe?"
-                    placeholder="A sun-drenched Mediterranean villa — relaxed but elevated..." />
-                  <Field {...f('colors')} label="What colors feel most like you?" rows={2}
-                    help="Go with your gut. What would you wear, decorate with, be drawn to in a store?"
-                    placeholder="Warm terracotta, deep forest green, soft cream, a little gold..." />
-                </>
-              )}
-
-              <Field {...f('wardrobe')} label="How would you describe your personal style?"
-                help="What you wear, how you present yourself. This shapes your photography and overall vibe."
-                placeholder="Elevated casual — great denim, neutral knits, gold jewelry, never fussy..." />
-              <Field {...f('spaces')} label="What spaces or settings feel like you?"
-                help="Where do you feel most yourself? This helps us plan where and how you show up visually."
-                placeholder="Bright, plant-filled rooms, coffee shops with character, anywhere near the water..." />
-            </>
-          )}
-
-          {step === 6 && (
-            <>
-              <div className="font-body text-ink/70 leading-relaxed italic space-y-3">
-                <p>
-                  One more thing before we talk photos — and this matters. A lot of people (especially
-                  women) feel uncomfortable being in front of the camera. They worry it&apos;s vain,
-                  &quot;look at me.&quot;
-                </p>
-                <p>
-                  It isn&apos;t. Your photoshoot isn&apos;t about you. It&apos;s about showing up
-                  <em> for</em> the people who need what you have — so they can find you, trust you, and
-                  let you help them. Being visible is an act of service. Let&apos;s make it feel like you.
-                </p>
-              </div>
-              <Field {...f('cameraComfort')} label="How do you feel about being photographed?" rows={3}
-                help="Totally honest. Love it? Dread it? Somewhere in between? There's no wrong answer."
-                placeholder="Honestly it makes me nervous. I never know what to do with my hands..." />
-              <Field {...f('workday')} label="Walk me through a real workday."
-                help="What do you actually do, hour to hour? The little rituals and tools are gold for authentic photos."
-                placeholder="I start with coffee and journaling, then client calls in the morning, editing with my dog at my feet..." />
-              <Field {...f('props')} label="What objects or props represent your work?" rows={2}
-                help="The tools of your trade, things you're always holding, items that tell your story."
-                placeholder="My camera, a worn leather journal, my favorite mug, fresh flowers..." />
-              <Field {...f('specificShots')} label="Any specific shots or images you know you need?"
-                help="Think about what's coming up — a launch, an event, an anniversary, a new service to promote."
-                placeholder="A new offer launching this spring, my 10-year business anniversary, headshots for a podcast tour..." />
-              <Field {...f('avoid')} label="Anything you want to avoid?" rows={2}
-                help="Be honest — angles, sides, or styles you don't love. Maybe a profile you hate, a pose that feels unnatural."
-                placeholder="Please not my left profile, nothing too posed or corporate..." />
-              <Field {...f('anythingElse')} label="Anything else you want to add?" rows={4}
-                help="This is your space. Is there anything we didn't ask that you think we should know? Sometimes the last thing you share is the most important."
-                placeholder="Honestly, the thing that matters most to me is..." />
-            </>
-          )}
-
-        </div>
-
-        <div className="flex justify-between mt-8">
-          <button onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
-            className="btn-emboss px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium disabled:opacity-30">
-            Back
-          </button>
-          {step < sections.length ? (
-            <button onClick={() => setStep(s => s + 1)}
-              className="btn-emboss px-6 py-3 rounded-full bg-coral text-bone font-body font-medium">
-              {step === 0 ? 'Begin' : 'Next'}
-            </button>
-          ) : (
-            <button onClick={generateBrief} disabled={generating}
-              className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold disabled:opacity-50">
-              {generating ? 'Creating your brief…' : 'Generate My Brand Brief →'}
-            </button>
-          )}
-        </div>
-
-      </div>
-    </main>
-  )
+  return <BrandBrief brief={myBrief} name="Sarah" onBack={() => {}} />
 }
