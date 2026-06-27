@@ -3,7 +3,7 @@
 type Brief = {
   howToUseThisBrief?: { intro?: string; steps?: string[] }
   brandInOneSentence?: string
-  storyBrandBio?: string
+  bio?: string
   originStory?: string
   idealClient?: string
   brandVoice?: { descriptors?: string[]; guide?: string; examples?: string[] }
@@ -13,6 +13,8 @@ type Brief = {
     moodDescription?: string
     colors?: { name?: string; hex?: string; usage?: string }[]
     typographyFeel?: string
+    locationIdeas?: string[]
+    wardrobeIdeas?: string[]
   }
   photographyShotList?: {
     intro?: string
@@ -87,8 +89,8 @@ export default function BrandBrief({ brief, name, onBack }:
           </Section>
         )}
 
-        {brief.storyBrandBio && (
-          <Section number="01" title="Your Bio">{paras(brief.storyBrandBio)}</Section>
+        {brief.bio && (
+          <Section number="01" title="Your Bio">{paras(brief.bio)}</Section>
         )}
 
         {brief.originStory && (
@@ -164,6 +166,31 @@ export default function BrandBrief({ brief, name, onBack }:
                 <p className="font-body text-ink/80 leading-relaxed">{brief.visualDirection.typographyFeel}</p>
               </div>
             )}
+            {brief.visualDirection.locationIdeas && (
+              <div className="mt-5">
+                <p className="font-body text-xs tracking-widest text-ink/50 mb-2">LOCATION IDEAS</p>
+                <div className="flex flex-wrap gap-2">
+                  {brief.visualDirection.locationIdeas.map((l, i) => (
+                    <span key={i} className="font-body text-sm bg-white/60 text-ink/80 rounded-full px-3 py-1">{l}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {brief.visualDirection.wardrobeIdeas && (
+              <div className="mt-4">
+                <p className="font-body text-xs tracking-widest text-ink/50 mb-2">WARDROBE & STYLING</p>
+                <div className="flex flex-wrap gap-2">
+                  {brief.visualDirection.wardrobeIdeas.map((w, i) => (
+                    <span key={i} className="font-body text-sm bg-white/60 text-ink/80 rounded-full px-3 py-1">{w}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="mt-5 rounded-xl bg-emerald/10 border border-emerald/20 p-4">
+              <p className="font-body text-sm text-emerald leading-relaxed">
+                A full visual mood board — your colors, locations, and styling rendered together — is coming soon as a downloadable board.
+              </p>
+            </div>
           </Section>
         )}
 
@@ -244,7 +271,11 @@ export default function BrandBrief({ brief, name, onBack }:
           </Section>
         )}
 
-        <div className="flex justify-center mt-8">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 no-print">
+          <button onClick={() => window.print()}
+            className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold">
+            Download / Save as PDF
+          </button>
           <button onClick={onBack}
             className="btn-emboss px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium">
             ← Back to questionnaire
