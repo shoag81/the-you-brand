@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 type Brief = {
   howToUseThisBrief?: { intro?: string; steps?: string[] }
   brandInOneSentence?: string
@@ -54,6 +56,27 @@ const modeStyle: Record<string, string> = {
 
 export default function BrandBrief({ brief, name, onBack }:
   { brief: Brief; name?: string; onBack: () => void }) {
+  const [moodUrl, setMoodUrl] = useState<string | null>(null)
+  const [moodLoading, setMoodLoading] = useState(false)
+
+  const generateMoodBoard = async () => {
+    setMoodLoading(true)
+    try {
+      const res = await fetch('/api/generate-moodboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visualDirection: brief.visualDirection, name }),
+      })
+      const data = await res.json()
+      if (data.imageUrl) setMoodUrl(data.imageUrl)
+      else alert('Mood board generation failed. Please try again.')
+    } catch {
+      alert('Mood board generation failed. Please try again.')
+    } finally {
+      setMoodLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen px-6 py-12">
       <div className="max-w-3xl mx-auto">
@@ -186,10 +209,24 @@ export default function BrandBrief({ brief, name, onBack }:
                 </div>
               </div>
             )}
-            <div className="mt-5 rounded-xl bg-emerald/10 border border-emerald/20 p-4">
-              <p className="font-body text-sm text-emerald leading-relaxed">
-                A full visual mood board — your colors, locations, and styling rendered together — is coming soon as a downloadable board.
-              </p>
+            <div className="mt-6">
+              {!moodUrl && (
+                <button onClick={generateMoodBoard} disabled={moodLoading}
+                  className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold disabled:opacity-50 no-print">
+                  {moodLoading ? 'Creating your mood board…' : 'Generate My Mood Board'}
+                </button>
+              )}
+              {moodUrl && (
+                <div className="mt-4">
+                  <p className="font-body text-xs tracking-widest text-ink/50 mb-2">YOUR MOOD BOARD</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={moodUrl} alt="Brand mood board" className="w-full rounded-2xl shadow-lg" />
+                  <button onClick={generateMoodBoard} disabled={moodLoading}
+                    className="btn-emboss mt-3 px-4 py-2 rounded-full border border-ink/20 bg-bone text-ink font-body text-sm no-print">
+                    {moodLoading ? 'Regenerating…' : 'Regenerate'}
+                  </button>
+                </div>
+              )}
             </div>
           </Section>
         )}
