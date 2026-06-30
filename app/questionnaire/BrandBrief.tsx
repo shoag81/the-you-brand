@@ -1,12 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 type Brief = {
   howToUseThisBrief?: { intro?: string; steps?: string[] }
@@ -67,27 +61,11 @@ async function uploadBase64Image(
   column: string
 ) {
   try {
-    const base64 = dataUrl.split(',')[1]
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0))
-    const blob = new Blob([bytes], { type: 'image/png' })
-
-    const { error: uploadError } = await supabase.storage
-      .from('brand-assets')
-      .upload(path, blob, { upsert: true, contentType: 'image/png' })
-
-    if (uploadError) {
-      console.error('Storage upload error:', { column, path, uploadError })
-      return
-    }
-
-    const { error: updateError } = await supabase
-      .from('brand_sessions')
-      .update({ [column]: path })
-      .eq('id', sessionId)
-
-    if (updateError) {
-      console.error('Session update error:', { column, sessionId, updateError })
-    }
+    await fetch('/api/upload-asset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, dataUrl, path, column }),
+    })
   } catch (err) {
     console.error('Upload failed:', { column, path, err })
   }
