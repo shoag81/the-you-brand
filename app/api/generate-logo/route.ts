@@ -33,30 +33,22 @@ function buildPrompt(type: LogoType, fullName: string, style?: LogoRequestBody['
   const spelledLast = last.split('').join('-')
 
   if (type === 'signature') {
-    return `Generate an original personal signature logo, in the exact design style of the attached reference images. These references are for stroke weight, layout, and overall styling guidance only — do not copy any reference directly, and do not reuse any reference's actual name.
+    return `Study the attached reference logo images closely — their exact stroke weight, letterform proportions, flourish style, and overall hand-lettered character. Generate an original signature logo for a different person, in that same designer's hand and style, the way the same calligrapher might letter a new client's name.
 
-This is a real, professionally designed wordmark logo for a real person, not a concept sketch or AI illustration. Treat it the way a logo designer would treat a finished client deliverable.
-
-Layout: the first name "${first}" (spelled letter by letter: ${spelledFirst}) is rendered LARGE in flowing, connected cursive script — confident, hand-lettered feel, varying stroke weight, a natural connecting flourish or underline is welcome. Directly below or beside it, the last name "${last}" (spelled letter by letter: ${spelledLast}) appears much SMALLER, in clean spaced sans-serif capital letters, evenly letter-spaced. The first name must always be the dominant visual element; the last name is a quiet supporting line.
+Person's name: first name "${first}" (spelled: ${spelledFirst}), last name "${last}" (spelled: ${spelledLast}). The first name should be the dominant, larger element; the last name supports it, smaller, beneath or beside it.
 
 ${styleHint}
 
-The ONLY text allowed anywhere in the image is the person's first and last name as described above. Do not add taglines, descriptor words (no "Photography", "Studio", "Co", etc.), dates, symbols, or any other text or labels of any kind.
-
-Color: solid black logo only. Background: fully transparent. No color, no gradient, no drop shadow, no outline, no frame, no border, no extra graphic elements, no clip art. Output should look like a real exported brand asset — crisp vector-like edges, nothing photographic, nothing 3D.`
+The only text in the image is this person's name — no taglines, no extra words, no labels. Solid black ink only, fully transparent background, no color, no shadow, no outline, no clip art.`
   }
 
-  return `Generate an original personal monogram logo, in the exact design style of the attached reference images. These references are for stroke weight, layout, and overall styling guidance only — do not copy any reference directly, and do not reuse any reference's actual initials or names.
+  return `Study the attached reference monogram logo images closely — their exact letterform style, weight, interlocking structure, and the way the small script names are placed. Generate an original monogram logo for a different person, in that same designer's hand and style, the way the same designer might create a new client's mark.
 
-This is a real, professionally designed monogram logo for a real person, not a concept sketch or AI illustration. Treat it the way a logo designer would treat a finished client deliverable.
-
-Layout: two large, bold serif capital initials — "${first.charAt(0)}" and "${last.charAt(0)}" — interlocked or overlapping in the center as equal-weight partners, sharing visual weight roughly 50/50, with elegant serif detailing (subtle ligature-style connections between the letterforms are welcome). Running vertically alongside each initial, in small delicate cursive script, the corresponding full name: "${first}" (spelled letter by letter: ${spelledFirst}) next to its initial, and "${last}" (spelled letter by letter: ${spelledLast}) next to its initial.
+Person's name: first name "${first}" (spelled: ${spelledFirst}), last name "${last}" (spelled: ${spelledLast}), initials "${first.charAt(0)}" and "${last.charAt(0)}".
 
 ${styleHint}
 
-The ONLY text allowed anywhere in the image is the person's first and last name as described above. Do not add taglines, descriptor words (no "Photography", "Studio", "Co", etc.), dates, symbols, or any other text or labels of any kind.
-
-Color: solid black logo only. Background: fully transparent. No color, no gradient, no drop shadow, no outline, no frame, no border, no extra graphic elements, no clip art. Output should look like a real exported brand asset — crisp vector-like edges, nothing photographic, nothing 3D.`
+The only text in the image is this person's name and initials — no taglines, no extra words, no labels. Solid black ink only, fully transparent background, no color, no shadow, no outline, no clip art.`
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -88,6 +80,7 @@ export async function POST(req: NextRequest) {
     formData.append('size', '1536x1024')
     formData.append('quality', 'high')
     formData.append('background', 'transparent')
+    formData.append('input_fidelity', 'high')
 
     references.forEach((ref, i) => {
       const blob = dataUrlToBlob(ref)
