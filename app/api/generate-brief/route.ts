@@ -1,7 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 const SYSTEM_PROMPT = `You are the brand strategist behind The You Brand — a premium personal-branding studio. You have just guided someone through a deep discovery conversation, and now you are writing their personal Brand Brief: a strategic document they will build their business on. People pay real money for this. It must never read like generic AI output. It must sound like a sharp, warm, experienced human strategist who actually listened.
 
@@ -52,6 +58,7 @@ Use the person's actual full name throughout where natural, especially in bio, o
 export async function POST(request: Request) {
   try {
     const answers = await request.json()
+    const { fullName, businessName, hasBrand, ...questionnaireAnswers } = answers
 
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-8',
@@ -67,7 +74,28 @@ export async function POST(request: Request) {
     const clean = text.replace(/```json|```/g, '').trim()
     const brief = JSON.parse(clean)
 
-    return NextResponse.json({ brief })
+    // Save to Supabase
+    let sessionId: string | null = null
+    try {
+      const { data: session, error } = await supabase
+        .from('brand_sessions')
+        .insert({
+          full_name: fullName,
+          business_name: businessName,
+          has_brand: hasBrand,
+          answers: questionnaireAnswers,
+          brief,
+        })
+        .select('id')
+        .single()
+
+      if (error) console.error('Supabase save error:', error)
+      else sessionId = session?.id
+    } catch (dbError) {
+      console.error('Supabase error:', dbError)
+    }
+
+    return NextResponse.json({ brief, sessionId })
   } catch (error) {
     console.error('Brief generation error:', error)
     return NextResponse.json({ error: 'Failed to generate brief' }, { status: 500 })
