@@ -76,16 +76,20 @@ async function uploadBase64Image(
       .upload(path, blob, { upsert: true, contentType: 'image/png' })
 
     if (uploadError) {
-      console.error('Storage upload error:', uploadError)
+      console.error('Storage upload error:', { column, path, uploadError })
       return
     }
 
-    await supabase
+    const { error: updateError } = await supabase
       .from('brand_sessions')
       .update({ [column]: path })
       .eq('id', sessionId)
+
+    if (updateError) {
+      console.error('Session update error:', { column, sessionId, updateError })
+    }
   } catch (err) {
-    console.error('Upload failed:', err)
+    console.error('Upload failed:', { column, path, err })
   }
 }
 
