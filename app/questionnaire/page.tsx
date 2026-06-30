@@ -39,6 +39,7 @@ export default function Questionnaire() {
   const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
   const [generating, setGenerating] = useState(false)
   const [brief, setBrief] = useState<Record<string, unknown> | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -60,6 +61,7 @@ export default function Questionnaire() {
       })
       const data = await res.json()
       setBrief(data.brief)
+      setSessionId(data.sessionId || null)
     } catch {
       alert('Something went wrong. Please try again.')
     } finally {
@@ -70,7 +72,7 @@ export default function Questionnaire() {
   const progress = (step / sections.length) * 100
 
   if (brief) {
-    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} fullName={fullName} onBack={() => setBrief(null)} />
+    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} fullName={fullName} sessionId={sessionId} onBack={() => setBrief(null)} />
   }
 
   return (
