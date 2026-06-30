@@ -6,7 +6,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 const SYSTEM_PROMPT = `You are the brand strategist behind The You Brand — a premium personal-branding studio. You have just guided someone through a deep discovery conversation, and now you are writing their personal Brand Brief: a strategic document they will build their business on. People pay real money for this. It must never read like generic AI output. It must sound like a sharp, warm, experienced human strategist who actually listened.
