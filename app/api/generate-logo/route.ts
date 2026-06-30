@@ -46,6 +46,8 @@ The only text in the image is this person's name — no taglines, no extra words
 
 Person's name: first name "${first}" (spelled: ${spelledFirst}), last name "${last}" (spelled: ${spelledLast}), initials "${first.charAt(0)}" and "${last.charAt(0)}".
 
+The full first name must run VERTICALLY alongside the first initial, rotated 90 degrees. The full last name must run VERTICALLY alongside the second initial, rotated 90 degrees. Do not place the names horizontally under the initials.
+
 ${styleHint}
 
 The only text in the image is this person's name and initials — no taglines, no extra words, no labels. Solid black ink only, fully transparent background, no color, no shadow, no outline, no clip art.`
