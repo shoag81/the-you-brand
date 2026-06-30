@@ -70,7 +70,7 @@ export default function Questionnaire() {
   const progress = (step / sections.length) * 100
 
   if (brief) {
-    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} onBack={() => setBrief(null)} />
+    return <BrandBrief brief={brief} name={fullName.split(' ')[0]} fullName={fullName} onBack={() => setBrief(null)} />
   }
 
   return (

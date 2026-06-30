@@ -54,8 +54,9 @@ const modeStyle: Record<string, string> = {
   connection: 'bg-golden/30 text-ink',
 }
 
-function LogoConcept({ logo }:
-  { logo: { name?: string; description?: string; prompt?: string } }) {
+function LogoMaker({ label, description, type, name, style }:
+  { label: string; description: string; type: 'signature' | 'monogram'; name?: string;
+    style: { typographyFeel?: string; wardrobeIdeas?: string[]; moodDescription?: string } }) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [count, setCount] = useState(0)
@@ -67,7 +68,7 @@ function LogoConcept({ logo }:
       const res = await fetch('/api/generate-logo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: logo.prompt }),
+        body: JSON.stringify({ type, name, style }),
       })
       const data = await res.json()
       if (data.imageUrl) {
@@ -85,8 +86,8 @@ function LogoConcept({ logo }:
 
   return (
     <div>
-      <h3 className="font-display text-lg font-bold text-ink mb-1">{logo.name}</h3>
-      <p className="font-body text-ink/80 leading-relaxed mb-3">{logo.description}</p>
+      <h3 className="font-display text-lg font-bold text-ink mb-1">{label}</h3>
+      <p className="font-body text-ink/80 leading-relaxed mb-3">{description}</p>
       {!url && (
         <button onClick={generate} disabled={loading}
           className="btn-emboss px-5 py-2 rounded-full bg-emerald text-bone font-body text-sm font-bold disabled:opacity-50 no-print">
@@ -96,9 +97,9 @@ function LogoConcept({ logo }:
       {url && (
         <div className="mt-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={`${logo.name} signature logo`} className="w-full max-w-md rounded-xl border border-black/5 bg-white" />
+          <img src={url} alt={`${label} logo`} className="w-full max-w-md rounded-xl border border-black/5 bg-white" />
           <div className="flex flex-wrap gap-3 items-center mt-3 no-print">
-            <a href={url} download="signature-logo.png" target="_blank" rel="noopener noreferrer"
+            <a href={url} download={`${type}-logo.png`}
               className="btn-emboss px-4 py-2 rounded-full bg-ink text-bone font-body text-sm font-bold">
               Download PNG
             </a>
@@ -118,8 +119,8 @@ function LogoConcept({ logo }:
   )
 }
 
-export default function BrandBrief({ brief, name, onBack }:
-  { brief: Brief; name?: string; onBack: () => void }) {
+export default function BrandBrief({ brief, name, fullName, onBack }:
+  { brief: Brief; name?: string; fullName?: string; onBack: () => void }) {
   const [moodUrl, setMoodUrl] = useState<string | null>(null)
   const [moodLoading, setMoodLoading] = useState(false)
   const [moodCount, setMoodCount] = useState(0)
@@ -375,15 +376,35 @@ export default function BrandBrief({ brief, name, onBack }:
           </Section>
         )}
 
-        {brief.signatureLogoConcepts && (
-          <Section number="12" title="Signature Logo Concepts">
-            <div className="space-y-8">
-              {brief.signatureLogoConcepts.map((logo, i) => (
-                <LogoConcept key={i} logo={logo} />
-              ))}
-            </div>
-          </Section>
-        )}
+        <Section number="12" title="Signature Logos">
+          <p className="font-body text-ink/70 leading-relaxed mb-6">
+            Two personal signature marks built from your name — a polished touch for your email signature, website footer, or photo watermark. Generate each, then download the transparent PNG.
+          </p>
+          <div className="space-y-8">
+            <LogoMaker
+              label="The Signature"
+              description="Your first name in elegant flowing script, with your last name in small spaced capitals beneath — classic, clean, and unmistakably yours."
+              type="signature"
+              name={fullName || name}
+              style={{
+                typographyFeel: brief.visualDirection?.typographyFeel,
+                wardrobeIdeas: brief.visualDirection?.wardrobeIdeas,
+                moodDescription: brief.visualDirection?.moodDescription,
+              }}
+            />
+            <LogoMaker
+              label="The Monogram"
+              description="Your initials, interlocking in a refined minimal mark — perfect as a compact watermark or avatar."
+              type="monogram"
+              name={fullName || name}
+              style={{
+                typographyFeel: brief.visualDirection?.typographyFeel,
+                wardrobeIdeas: brief.visualDirection?.wardrobeIdeas,
+                moodDescription: brief.visualDirection?.moodDescription,
+              }}
+            />
+          </div>
+        </Section>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 no-print">
           <button onClick={() => window.print()}
