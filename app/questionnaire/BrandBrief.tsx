@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 type Brief = {
   howToUseThisBrief?: { intro?: string; steps?: string[] }
@@ -54,9 +60,39 @@ const modeStyle: Record<string, string> = {
   connection: 'bg-golden/30 text-ink',
 }
 
-function LogoMaker({ label, description, type, name, style }:
+async function uploadBase64Image(
+  sessionId: string,
+  dataUrl: string,
+  path: string,
+  column: string
+) {
+  try {
+    const base64 = dataUrl.split(',')[1]
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0))
+    const blob = new Blob([bytes], { type: 'image/png' })
+
+    const { error: uploadError } = await supabase.storage
+      .from('brand-assets')
+      .upload(path, blob, { upsert: true, contentType: 'image/png' })
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError)
+      return
+    }
+
+    await supabase
+      .from('brand_sessions')
+      .update({ [column]: path })
+      .eq('id', sessionId)
+  } catch (err) {
+    console.error('Upload failed:', err)
+  }
+}
+
+function LogoMaker({ label, description, type, name, style, sessionId }:
   { label: string; description: string; type: 'signature' | 'monogram'; name?: string;
-    style: { typographyFeel?: string; wardrobeIdeas?: string[]; moodDescription?: string } }) {
+    style: { typographyFeel?: string; wardrobeIdeas?: string[]; moodDescription?: string };
+    sessionId?: string | null }) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [count, setCount] = useState(0)
@@ -74,6 +110,11 @@ function LogoMaker({ label, description, type, name, style }:
       if (data.imageUrl) {
         setUrl(data.imageUrl)
         setCount(c => c + 1)
+        if (sessionId) {
+          const column = type === 'signature' ? 'signature_logo_path' : 'monogram_logo_path'
+          const path = `${sessionId}/${type}-logo.png`
+          await uploadBase64Image(sessionId, data.imageUrl, path, column)
+        }
       } else {
         alert('Logo generation failed. Please try again.')
       }
@@ -119,12 +160,12 @@ function LogoMaker({ label, description, type, name, style }:
   )
 }
 
-export default function BrandBrief({ brief, name, fullName, onBack }:
-  { brief: Brief; name?: string; fullName?: string; onBack: () => void }) {
+export default function BrandBrief({ brief, name, fullName, sessionId, onBack }:
+  { brief: Brief; name?: string; fullName?: string; sessionId?: string | null; onBack: () => void }) {
   const [moodUrl, setMoodUrl] = useState<string | null>(null)
   const [moodLoading, setMoodLoading] = useState(false)
   const [moodCount, setMoodCount] = useState(0)
-  const MAX_MOOD = 4 // first generate + 3 regenerations
+  const MAX_MOOD = 4
 
   const generateMoodBoard = async () => {
     setMoodLoading(true)
@@ -138,6 +179,10 @@ export default function BrandBrief({ brief, name, fullName, onBack }:
       if (data.imageUrl) {
         setMoodUrl(data.imageUrl)
         setMoodCount(c => c + 1)
+        if (sessionId) {
+          const path = `${sessionId}/mood-board.png`
+          await uploadBase64Image(sessionId, data.imageUrl, path, 'mood_board_path')
+        }
       } else {
         alert('Mood board generation failed. Please try again.')
       }
@@ -386,6 +431,7 @@ export default function BrandBrief({ brief, name, fullName, onBack }:
               description="Your first name in elegant flowing script, with your last name in small spaced capitals beneath — classic, clean, and unmistakably yours."
               type="signature"
               name={fullName || name}
+              sessionId={sessionId}
               style={{
                 typographyFeel: brief.visualDirection?.typographyFeel,
                 wardrobeIdeas: brief.visualDirection?.wardrobeIdeas,
@@ -397,6 +443,7 @@ export default function BrandBrief({ brief, name, fullName, onBack }:
               description="Your initials, interlocking in a refined minimal mark — perfect as a compact watermark or avatar."
               type="monogram"
               name={fullName || name}
+              sessionId={sessionId}
               style={{
                 typographyFeel: brief.visualDirection?.typographyFeel,
                 wardrobeIdeas: brief.visualDirection?.wardrobeIdeas,
