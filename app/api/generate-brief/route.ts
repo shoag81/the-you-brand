@@ -56,6 +56,7 @@ SECTION NOTES:
 Use the person's actual full name throughout where natural, especially in bio, origin story, and logo concepts.`
 
 export async function POST(request: Request) {
+  console.log('SUPABASE_SERVICE_ROLE_KEY defined:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   try {
     const answers = await request.json()
     const { fullName, businessName, hasBrand, ...questionnaireAnswers } = answers
