@@ -1,57 +1,114 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { SIGNATURE_REFERENCES, MONOGRAM_REFERENCES } from '@/lib/logo-references'
 
-export async function POST(request: Request) {
+export const maxDuration = 60
+
+type LogoType = 'signature' | 'monogram'
+
+interface LogoRequestBody {
+  type: LogoType
+  name?: string
+  style?: {
+    typographyFeel?: string
+    wardrobeIdeas?: string[]
+    moodDescription?: string
+  }
+}
+
+function splitName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/)
+  const first = parts[0] || ''
+  const last = parts.slice(1).join(' ') || ''
+  return { first, last }
+}
+
+function buildPrompt(type: LogoType, fullName: string, style?: LogoRequestBody['style']) {
+  const { first, last } = splitName(fullName)
+  const styleHint = [
+    style?.typographyFeel ? `Typography feel to lean into: ${style.typographyFeel}.` : '',
+    style?.moodDescription ? `Overall mood: ${style.moodDescription}.` : '',
+  ].filter(Boolean).join(' ')
+
+  const spelledFirst = first.split('').join('-')
+  const spelledLast = last.split('').join('-')
+
+  if (type === 'signature') {
+    return `Generate an original personal signature logo, in the exact design style of the attached reference images. These references are for stroke weight, layout, and overall styling guidance only — do not copy any reference directly, and do not reuse any reference's actual name.
+
+This is a real, professionally designed wordmark logo for a real person, not a concept sketch or AI illustration. Treat it the way a logo designer would treat a finished client deliverable.
+
+Layout: the first name "${first}" (spelled letter by letter: ${spelledFirst}) is rendered LARGE in flowing, connected cursive script — confident, hand-lettered feel, varying stroke weight, a natural connecting flourish or underline is welcome. Directly below or beside it, the last name "${last}" (spelled letter by letter: ${spelledLast}) appears much SMALLER, in clean spaced sans-serif capital letters, evenly letter-spaced. The first name must always be the dominant visual element; the last name is a quiet supporting line.
+
+${styleHint}
+
+The ONLY text allowed anywhere in the image is the person's first and last name as described above. Do not add taglines, descriptor words (no "Photography", "Studio", "Co", etc.), dates, symbols, or any other text or labels of any kind.
+
+Color: solid black logo only. Background: fully transparent. No color, no gradient, no drop shadow, no outline, no frame, no border, no extra graphic elements, no clip art. Output should look like a real exported brand asset — crisp vector-like edges, nothing photographic, nothing 3D.`
+  }
+
+  return `Generate an original personal monogram logo, in the exact design style of the attached reference images. These references are for stroke weight, layout, and overall styling guidance only — do not copy any reference directly, and do not reuse any reference's actual initials or names.
+
+This is a real, professionally designed monogram logo for a real person, not a concept sketch or AI illustration. Treat it the way a logo designer would treat a finished client deliverable.
+
+Layout: two large, bold serif capital initials — "${first.charAt(0)}" and "${last.charAt(0)}" — interlocked or overlapping in the center as equal-weight partners, sharing visual weight roughly 50/50, with elegant serif detailing (subtle ligature-style connections between the letterforms are welcome). Running vertically alongside each initial, in small delicate cursive script, the corresponding full name: "${first}" (spelled letter by letter: ${spelledFirst}) next to its initial, and "${last}" (spelled letter by letter: ${spelledLast}) next to its initial.
+
+${styleHint}
+
+The ONLY text allowed anywhere in the image is the person's first and last name as described above. Do not add taglines, descriptor words (no "Photography", "Studio", "Co", etc.), dates, symbols, or any other text or labels of any kind.
+
+Color: solid black logo only. Background: fully transparent. No color, no gradient, no drop shadow, no outline, no frame, no border, no extra graphic elements, no clip art. Output should look like a real exported brand asset — crisp vector-like edges, nothing photographic, nothing 3D.`
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(',')
+  const mimeMatch = header.match(/data:(.*?);base64/)
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png'
+  const bytes = Buffer.from(base64, 'base64')
+  return new Blob([bytes], { type: mime })
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { type, name, style } = await request.json()
-    // type: 'signature' | 'monogram'
-    // name: full name string
-    // style: { typographyFeel, wardrobeIdeas, moodDescription }
+    const body: LogoRequestBody = await req.json()
+    const { type, name, style } = body
 
+    if (!type || (type !== 'signature' && type !== 'monogram')) {
+      return NextResponse.json({ error: 'Invalid logo type' }, { status: 400 })
+    }
     if (!name) {
-      return NextResponse.json({ error: 'No name provided' }, { status: 400 })
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
-    const parts = name.trim().split(/\s+/)
-    const first = parts[0] || name
-    const last = parts.length > 1 ? parts[parts.length - 1] : ''
-    const initials = (first[0] || '') + (last[0] || '')
+    const references = type === 'signature' ? SIGNATURE_REFERENCES : MONOGRAM_REFERENCES
+    const prompt = buildPrompt(type, name, style)
 
-    const styleHint = [
-      style?.typographyFeel ? `Typography feeling: ${style.typographyFeel}.` : '',
-      style?.moodDescription ? `Overall brand mood: ${style.moodDescription}.` : '',
-      style?.wardrobeIdeas?.length ? `Personal style cues: ${style.wardrobeIdeas.join(', ')}.` : '',
-    ].filter(Boolean).join(' ')
+    const formData = new FormData()
+    formData.append('model', 'gpt-image-1')
+    formData.append('prompt', prompt)
+    formData.append('size', '1536x1024')
+    formData.append('quality', 'high')
+    formData.append('background', 'transparent')
 
-    let prompt = ''
-    if (type === 'monogram') {
-      prompt = `A polished, real, professional luxury personal-brand monogram logo — the kind already in use by a high-end lifestyle or fashion brand. On a plain solid white background. The mark is built from only the two initials "${initials}" (for ${first} ${last}), elegantly interlocking and overlapping into one refined symbol. Fine, thin, high-contrast serif letterforms with graceful tapering and generous balanced negative space. Solid pure black. Single centered mark, generous even padding, perfectly clean edges. ${styleHint} Spell the initials exactly as the letters "${initials.split('').join('" "')}". Constraints: minimal and timeless, no extra text, no name spelled out, no decorative flourishes, no clip art, no gradients, no shadows, no frame, no border, nothing generic or overdesigned.`
-    } else {
-      prompt = `A polished, real, professional luxury personal signature logo — the kind already in use by a high-end lifestyle photographer or fashion brand. On a plain solid white background. Two parts, stacked and centered: on top, the first name "${first}" as the hero in large, flowing, graceful modern calligraphy script with thin elegant even monoline strokes, like a beautiful real handwritten signature; directly below it, the last name "${last}" in a clean minimal sans-serif, ALL CAPS, much smaller, with wide even letter-spacing. The first name is clearly larger and dominant; the last name is small and understated. Solid pure black, generous padding, perfectly clean edges, plenty of negative space. ${styleHint} CRITICAL spelling — the script must read exactly "${first}" spelled "${first.split('').join('" "')}", and the caps must read exactly "${last}". Do not add, drop, or alter any letters. Constraints: refined, minimal, timeless, no decorative flourishes beyond a single subtle signature swash, no clip art, no gradients, no shadows, no frame, no border, no tagline, nothing generic or overdesigned.`
-    }
-
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY || ''}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt,
-        size: '1536x1024',
-        quality: 'high',
-        background: 'transparent',
-        n: 1,
-      }),
+    references.forEach((ref, i) => {
+      const blob = dataUrlToBlob(ref)
+      formData.append('image[]', blob, `reference-${i}.png`)
     })
 
-    if (!res.ok) {
-      const errText = await res.text()
-      console.error('OpenAI logo error:', res.status, errText)
-      return NextResponse.json({ error: 'Logo generation failed' }, { status: 500 })
+    const response = await fetch('https://api.openai.com/v1/images/edits', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errText = await response.text()
+      console.error('OpenAI logo error:', errText)
+      return NextResponse.json({ error: 'Failed to generate logo' }, { status: 500 })
     }
 
-    const data = await res.json()
+    const data = await response.json()
     const b64 = data?.data?.[0]?.b64_json
 
     if (!b64) {
