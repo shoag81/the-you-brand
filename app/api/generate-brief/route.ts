@@ -90,6 +90,7 @@ export async function POST(request: Request) {
         .select('id')
         .single()
 
+      console.log('Supabase insert result — error:', error, 'session.id:', session?.id)
       if (error) console.error('Supabase save error:', error)
       else sessionId = session?.id
     } catch (dbError) {
