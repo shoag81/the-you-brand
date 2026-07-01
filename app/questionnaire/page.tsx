@@ -60,8 +60,8 @@ export default function Questionnaire() {
         body: JSON.stringify(payload),
       })
       const data = await res.json()
-      setBrief(data.brief)
       setSessionId(data.sessionId || null)
+      setBrief(data.brief)
     } catch {
       alert('Something went wrong. Please try again.')
     } finally {
