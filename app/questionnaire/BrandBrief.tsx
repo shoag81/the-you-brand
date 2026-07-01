@@ -61,11 +61,16 @@ async function uploadBase64Image(
   column: string
 ) {
   try {
-    await fetch('/api/upload-asset', {
+    console.log('calling upload-asset with sessionId:', sessionId)
+    const res = await fetch('/api/upload-asset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId, dataUrl, path, column }),
     })
+    if (!res.ok) {
+      const text = await res.text()
+      console.error('upload-asset response error:', res.status, text)
+    }
   } catch (err) {
     console.error('Upload failed:', { column, path, err })
   }
@@ -81,6 +86,7 @@ function LogoMaker({ label, description, type, name, style, sessionId }:
   const MAX = 3
 
   const generate = async () => {
+    console.log('sessionId in BrandBrief (LogoMaker):', sessionId)
     setLoading(true)
     try {
       const res = await fetch('/api/generate-logo', {
@@ -150,6 +156,7 @@ export default function BrandBrief({ brief, name, fullName, sessionId, onBack }:
   const MAX_MOOD = 4
 
   const generateMoodBoard = async () => {
+    console.log('sessionId in BrandBrief (generateMoodBoard):', sessionId)
     setMoodLoading(true)
     try {
       const res = await fetch('/api/generate-moodboard', {
