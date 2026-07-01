@@ -114,7 +114,7 @@ export default function Questionnaire() {
               </p>
               <p className="font-body text-ink/80 leading-relaxed">
                 And if you&apos;re not quite in the role you want yet — answer as the version of you who
-                already is. That&apos;s how you start to become her.
+                already is. That&apos;s how you start to become them.
               </p>
               <div className="pt-2 space-y-4">
                 <div>
