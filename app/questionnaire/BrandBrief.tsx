@@ -442,7 +442,10 @@ export default function BrandBrief({ brief, name, fullName, sessionId, onBack }:
           </div>
         </Section>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8 no-print">
+        <p className="font-body text-xs text-ink/50 text-center mt-8 no-print leading-relaxed">
+          Nothing on this page is saved automatically — download your Brand Brief PDF and any logo PNGs you want to keep before you leave.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4 no-print">
           <button onClick={() => window.print()}
             className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold">
             Download / Save as PDF
