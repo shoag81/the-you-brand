@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const redirect = (form.get('redirect') as string) || '/'
 
   if (code === process.env.ACCESS_CODE) {
-    const res = NextResponse.redirect(new URL(redirect, req.url))
+    const res = NextResponse.redirect(new URL(redirect, req.url), 303)
     res.cookies.set('you-brand-access', 'granted', {
       httpOnly: true,
       secure: true,
@@ -20,5 +20,5 @@ export async function POST(req: NextRequest) {
   const url = new URL('/access', req.url)
   url.searchParams.set('error', '1')
   url.searchParams.set('redirect', redirect)
-  return NextResponse.redirect(url)
+  return NextResponse.redirect(url, 303)
 }
