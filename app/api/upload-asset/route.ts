@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     }
 
     const base64 = dataUrl.split(',')[1]
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0))
-    const blob = new Blob([bytes], { type: 'image/png' })
+    const buffer = Buffer.from(base64, 'base64')
+    const blob = new Blob([buffer], { type: 'image/png' })
 
     const { error: uploadError } = await supabase.storage
       .from('brand-assets')
