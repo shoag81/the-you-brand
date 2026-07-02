@@ -296,8 +296,8 @@ export default function Questionnaire() {
                   &quot;look at me.&quot;
                 </p>
                 <p>
-                  It isn&apos;t. Your photoshoot isn&apos;t about you. It&apos;s about showing up
-                  <em> for</em> the people who need what you have — so they can find you, trust you, and
+                  It isn&apos;t. Your photoshoot isn&apos;t about you. It&apos;s about showing up{' '}
+                  <em>for</em> the people who need what you have — so they can find you, trust you, and
                   let you help them. Being visible is an act of service. Let&apos;s make it feel like you.
                 </p>
               </div>

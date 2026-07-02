@@ -22,22 +22,36 @@ function splitName(fullName: string) {
   return { first, last }
 }
 
+const SIGNATURE_VARIATIONS = [
+  'Bold and confident — strong, decisive strokes with minimal flourish.',
+  'Clean and modern — precise letterforms, very little decoration, lots of negative space.',
+  'A touch angular and structured — slightly architectural, controlled, and sharp.',
+  'Confident and understated — refined but unfussy, no decorative swashes.',
+  'Classic and balanced — traditional proportions, even weight, quietly authoritative.',
+  'Fluid and natural — relaxed but intentional, like a practiced everyday signature.',
+]
+
 function buildPrompt(type: LogoType, fullName: string, style?: LogoRequestBody['style']) {
   const { first, last } = splitName(fullName)
+
+  const variation = SIGNATURE_VARIATIONS[Math.floor(Math.random() * SIGNATURE_VARIATIONS.length)]
+
   const styleHint = [
-    style?.typographyFeel ? `Typography feel to lean into: ${style.typographyFeel}.` : '',
-    style?.moodDescription ? `Overall mood: ${style.moodDescription}.` : '',
+    style?.typographyFeel
+      ? `The person's brand typography feel is: ${style.typographyFeel}. Weight this heavily in your interpretation.`
+      : '',
+    style?.moodDescription ? `Overall brand mood: ${style.moodDescription}.` : '',
   ].filter(Boolean).join(' ')
 
   const spelledFirst = first.split('').join('-')
   const spelledLast = last.split('').join('-')
 
   if (type === 'signature') {
-    return `Study the attached reference logo images closely — their exact stroke weight, letterform proportions, flourish style, and overall hand-lettered character. Generate an original signature logo for a different person, in that same designer's hand and style, the way the same calligrapher might letter a new client's name.
+    return `Study the attached reference logo images closely — their stroke weight, letterform proportions, and overall hand-lettered character. Generate an original signature logo for a different person, the way the same calligrapher might interpret a new client's name with a fresh perspective.
 
-Person's name: first name "${first}" (spelled: ${spelledFirst}), last name "${last}" (spelled: ${spelledLast}). The first name should be the dominant, larger element; the last name supports it, smaller, beneath or beside it.
+Person's name: first name "${first}" (spelled: ${spelledFirst}), last name "${last}" (spelled: ${spelledLast}). The first name is the dominant, larger element; the last name supports it, smaller, beneath or beside it.
 
-${styleHint}
+Style direction for this version: ${variation}${styleHint ? ' ' + styleHint : ''}
 
 The only text in the image is this person's name — no taglines, no extra words, no labels. Solid black ink only, fully transparent background, no color, no shadow, no outline, no clip art.`
   }
