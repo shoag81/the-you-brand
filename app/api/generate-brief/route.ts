@@ -86,6 +86,7 @@ export async function POST(request: Request) {
           has_brand: hasBrand,
           answers: questionnaireAnswers,
           brief,
+          expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         })
         .select('id')
         .single()

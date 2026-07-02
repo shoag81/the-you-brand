@@ -442,7 +442,18 @@ export default function BrandBrief({ brief, name, fullName, sessionId, onBack }:
           </div>
         </Section>
 
-        <p className="font-body text-xs text-ink/50 text-center mt-8 no-print leading-relaxed">
+        {sessionId && (
+          <div className="bg-bone/80 rounded-2xl p-6 mt-10 text-center no-print">
+            <p className="font-body text-xs tracking-widest text-ink/50 mb-2">YOUR SHAREABLE LINK</p>
+            <p className="font-body text-ink font-medium break-all mb-1">
+              theyoubrand.ai/results/{sessionId}
+            </p>
+            <p className="font-body text-xs text-ink/50">
+              This link is active for 14 days and includes your brief and any logos you generated.
+            </p>
+          </div>
+        )}
+        <p className="font-body text-xs text-ink/50 text-center mt-6 no-print leading-relaxed">
           Nothing on this page is saved automatically — download your Brand Brief PDF and any logo PNGs you want to keep before you leave.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4 no-print">
