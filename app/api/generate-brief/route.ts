@@ -3,8 +3,6 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const supabase = createClient(
@@ -103,8 +101,9 @@ export async function POST(request: Request) {
     }
 
     // Send brief email — non-fatal
-    if (email && sessionId) {
+    if (email && sessionId && process.env.RESEND_API_KEY) {
       try {
+        const resend = new Resend(process.env.RESEND_API_KEY)
         const firstName = fullName?.split(' ')[0] || 'there'
         const resultsUrl = `https://theyoubrand.ai/results/${sessionId}`
         const subject = brief.brandInOneSentence
