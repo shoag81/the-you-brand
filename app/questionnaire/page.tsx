@@ -38,6 +38,7 @@ export default function Questionnaire() {
   const [email, setEmail] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
+  const [promoCode, setPromoCode] = useState('')
   const [generating, setGenerating] = useState(false)
   const [brief, setBrief] = useState<Record<string, unknown> | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -46,27 +47,76 @@ export default function Questionnaire() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [step])
 
+  // Auto-generate after Stripe redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const stripeSessionId = params.get('session_id')
+    if (stripeSessionId) {
+      setGenerating(true)
+      fetch('/api/generate-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, businessName, hasBrand, stripeSessionId, ...answers }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          setSessionId(data.sessionId || null)
+          setBrief(data.brief)
+        })
+        .catch(() => alert('Something went wrong generating your brief. Please contact support.'))
+        .finally(() => setGenerating(false))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const f = (key: string) => ({
     value: answers[key] || '',
     onChange: (v: string) => setAnswers(prev => ({ ...prev, [key]: v })),
   })
 
-  const generateBrief = async () => {
+  const generateBrief = async (opts: { promoCode?: string; stripeSessionId?: string } = {}) => {
     setGenerating(true)
     try {
-      const payload = { fullName, email, businessName, hasBrand, ...answers }
+      const payload = { fullName, email, businessName, hasBrand, ...answers, ...opts }
       const res = await fetch('/api/generate-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || 'Something went wrong. Please try again.')
+        return
+      }
       setSessionId(data.sessionId || null)
       setBrief(data.brief)
     } catch {
       alert('Something went wrong. Please try again.')
     } finally {
       setGenerating(false)
+    }
+  }
+
+  const handleGenerate = async () => {
+    if (promoCode.trim()) {
+      await generateBrief({ promoCode: promoCode.trim() })
+    } else {
+      // Redirect to Stripe checkout
+      setGenerating(true)
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ origin: window.location.origin }),
+        })
+        const { url, error } = await res.json()
+        if (error || !url) { alert(error || 'Could not create checkout session.'); return }
+        window.location.href = url
+      } catch {
+        alert('Something went wrong. Please try again.')
+      } finally {
+        setGenerating(false)
+      }
     }
   }
 
@@ -135,6 +185,12 @@ export default function Questionnaire() {
                   <p className={helpClass}>If you have one. If not, no worries — we&apos;ll help you find it.</p>
                   <input className={inputClass} placeholder="Rivera Creative Co."
                     value={businessName} onChange={e => setBusinessName(e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelClass}>Have a code? (optional)</label>
+                  <p className={helpClass}>If a studio or partner gave you an access code, enter it here.</p>
+                  <input className={inputClass} placeholder="XXXXX-XXXXX"
+                    value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} />
                 </div>
               </div>
             </div>
@@ -342,9 +398,9 @@ export default function Questionnaire() {
               {step === 0 ? 'Begin' : 'Next'}
             </button>
           ) : (
-            <button onClick={generateBrief} disabled={generating}
+            <button onClick={handleGenerate} disabled={generating}
               className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold disabled:opacity-50">
-              {generating ? 'Creating your brief…' : 'Generate My Brand Brief →'}
+              {generating ? (promoCode.trim() ? 'Creating your brief…' : 'Redirecting to checkout…') : (promoCode.trim() ? 'Generate My Brand Brief →' : 'Continue to Payment →')}
             </button>
           )}
         </div>

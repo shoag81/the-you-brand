@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { getStripe } from '@/lib/stripe'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -60,7 +61,38 @@ export async function POST(request: Request) {
   console.log('SUPABASE_SERVICE_ROLE_KEY defined:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   try {
     const answers = await request.json()
-    const { fullName, email, businessName, hasBrand, ...questionnaireAnswers } = answers
+    const { fullName, email, businessName, hasBrand, promoCode, stripeSessionId, ...questionnaireAnswers } = answers
+
+    // --- Payment / access gate ---
+    let studioId: string | null = null
+
+    if (promoCode) {
+      // Studio code path
+      const { data: codeRow, error: codeErr } = await supabase
+        .from('studio_codes')
+        .select('id, studio_id, used')
+        .eq('code', promoCode.trim().toUpperCase())
+        .single()
+
+      if (codeErr || !codeRow || codeRow.used) {
+        return NextResponse.json({ error: 'Invalid or already-used code.' }, { status: 403 })
+      }
+      studioId = codeRow.studio_id
+    } else if (stripeSessionId) {
+      // Consumer paid path — verify with Stripe
+      try {
+        const stripe = getStripe()
+        const session = await stripe.checkout.sessions.retrieve(stripeSessionId)
+        if (session.payment_status !== 'paid') {
+          return NextResponse.json({ error: 'Payment not completed.' }, { status: 403 })
+        }
+      } catch (stripeErr) {
+        console.error('Stripe verify error:', stripeErr)
+        return NextResponse.json({ error: 'Could not verify payment.' }, { status: 403 })
+      }
+    } else {
+      return NextResponse.json({ error: 'Payment or access code required.' }, { status: 403 })
+    }
 
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-8',
@@ -88,6 +120,7 @@ export async function POST(request: Request) {
           has_brand: hasBrand,
           answers: questionnaireAnswers,
           brief,
+          studio_id: studioId,
           expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         })
         .select('id')
@@ -98,6 +131,74 @@ export async function POST(request: Request) {
       else sessionId = session?.id
     } catch (dbError) {
       console.error('Supabase error:', dbError)
+    }
+
+    // Mark studio code used + check auto-refill
+    if (promoCode && studioId) {
+      try {
+        // Mark the code used
+        await supabase
+          .from('studio_codes')
+          .update({ used: true, used_at: new Date().toISOString(), session_id: sessionId })
+          .eq('code', promoCode.trim().toUpperCase())
+
+        // Count remaining unused codes for this studio
+        const { count } = await supabase
+          .from('studio_codes')
+          .select('id', { count: 'exact', head: true })
+          .eq('studio_id', studioId)
+          .eq('used', false)
+
+        if ((count ?? 0) === 0) {
+          // Out of codes — check auto_refill
+          const { data: studio } = await supabase
+            .from('studios')
+            .select('auto_refill, stripe_customer_id, email, business_name')
+            .eq('id', studioId)
+            .single()
+
+          if (studio?.auto_refill && studio?.stripe_customer_id) {
+            try {
+              const stripe = getStripe()
+              const paymentMethods = await stripe.paymentMethods.list({
+                customer: studio.stripe_customer_id,
+                type: 'card',
+              })
+              const pm = paymentMethods.data[0]
+              if (pm) {
+                await stripe.paymentIntents.create({
+                  amount: 39500,
+                  currency: 'usd',
+                  customer: studio.stripe_customer_id,
+                  payment_method: pm.id,
+                  confirm: true,
+                  off_session: true,
+                  metadata: { autoRefillStudioId: studioId },
+                })
+              }
+            } catch (refillErr) {
+              console.error('Auto-refill charge error:', refillErr)
+            }
+          } else if (studio?.email) {
+            // No auto-refill — notify studio they're out
+            if (process.env.RESEND_API_KEY) {
+              try {
+                const resend = new Resend(process.env.RESEND_API_KEY)
+                await resend.emails.send({
+                  from: 'The You Brand <onboarding@resend.dev>',
+                  to: studio.email,
+                  subject: "You're out of client codes",
+                  html: `<p>Hi ${studio.business_name},</p><p>Your last client code was just used. Head to your <a href="https://theyoubrand.ai/studio/dashboard?id=${studioId}">studio dashboard</a> to buy more.</p>`,
+                })
+              } catch (e) {
+                console.error('Out-of-codes email error:', e)
+              }
+            }
+          }
+        }
+      } catch (codeErr) {
+        console.error('Code marking error:', codeErr)
+      }
     }
 
     // Send brief email — non-fatal

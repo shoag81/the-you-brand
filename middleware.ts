@@ -6,6 +6,10 @@ export function middleware(request: NextRequest) {
   const isExcluded =
     pathname.startsWith('/access') ||
     pathname.startsWith('/api/verify-access') ||
+    pathname.startsWith('/studio') ||
+    pathname.startsWith('/api/checkout') ||
+    pathname.startsWith('/api/studio-buy-codes') ||
+    pathname.startsWith('/api/stripe-webhook') ||
     pathname.startsWith('/_next') ||
     /\.(ico|png|jpg|jpeg|svg|webp|gif)$/.test(pathname)
 
