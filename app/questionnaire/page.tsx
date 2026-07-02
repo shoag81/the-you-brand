@@ -35,6 +35,7 @@ export default function Questionnaire() {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -53,7 +54,7 @@ export default function Questionnaire() {
   const generateBrief = async () => {
     setGenerating(true)
     try {
-      const payload = { fullName, businessName, hasBrand, ...answers }
+      const payload = { fullName, email, businessName, hasBrand, ...answers }
       const res = await fetch('/api/generate-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,6 +123,12 @@ export default function Questionnaire() {
                   <p className={helpClass}>We&apos;ll use this to personalize your brand brief and signature logo concepts.</p>
                   <input className={inputClass} placeholder="Jane Rivera"
                     value={fullName} onChange={e => setFullName(e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelClass}>What&apos;s your email address?</label>
+                  <p className={helpClass}>We&apos;ll send your completed brief to this address so you always have a copy.</p>
+                  <input className={inputClass} type="email" placeholder="jane@example.com" required
+                    value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
                 <div>
                   <label className={labelClass}>What&apos;s your business or brand name? (optional)</label>

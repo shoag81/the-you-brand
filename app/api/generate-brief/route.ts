@@ -1,6 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -59,7 +62,7 @@ export async function POST(request: Request) {
   console.log('SUPABASE_SERVICE_ROLE_KEY defined:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   try {
     const answers = await request.json()
-    const { fullName, businessName, hasBrand, ...questionnaireAnswers } = answers
+    const { fullName, email, businessName, hasBrand, ...questionnaireAnswers } = answers
 
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-8',
@@ -82,6 +85,7 @@ export async function POST(request: Request) {
         .from('brand_sessions')
         .insert({
           full_name: fullName,
+          email,
           business_name: businessName,
           has_brand: hasBrand,
           answers: questionnaireAnswers,
@@ -96,6 +100,35 @@ export async function POST(request: Request) {
       else sessionId = session?.id
     } catch (dbError) {
       console.error('Supabase error:', dbError)
+    }
+
+    // Send brief email — non-fatal
+    if (email && sessionId) {
+      try {
+        const firstName = fullName?.split(' ')[0] || 'there'
+        const resultsUrl = `https://theyoubrand.ai/results/${sessionId}`
+        const subject = brief.brandInOneSentence
+          ? `Your brand brief is ready — "${brief.brandInOneSentence}"`
+          : 'Your You Brand brief is ready'
+
+        // TODO: switch from address to hello@theyoubrand.ai once verified in Resend
+        await resend.emails.send({
+          from: 'The You Brand <onboarding@resend.dev>',
+          to: email,
+          subject,
+          html: `
+            <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#17140F;">
+              <p style="font-size:1.1rem;">Hi ${firstName},</p>
+              <p>Your brand brief is ready. It's everything we uncovered about your brand — your story, your voice, your visual direction, your 90-day plan, and more.</p>
+              <p><a href="${resultsUrl}" style="display:inline-block;padding:12px 24px;background:#0F8366;color:#fff;text-decoration:none;border-radius:8px;font-family:sans-serif;font-weight:700;">View Your Brand Brief →</a></p>
+              <p style="font-size:0.875rem;color:#666;">This link is active for 14 days. If you generated logos, they're in there too — grab the PNGs before the link expires.</p>
+              <p style="font-size:0.875rem;color:#666;">— The You Brand</p>
+            </div>
+          `,
+        })
+      } catch (emailError) {
+        console.error('Resend email error:', emailError)
+      }
     }
 
     return NextResponse.json({ brief, sessionId })
