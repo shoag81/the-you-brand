@@ -32,52 +32,76 @@ function Field({ label, help, rows = 4, value, onChange, placeholder }:
 }
 
 export default function Questionnaire() {
+  const [access, setAccess] = useState(false)
+  const [stripeSessionId, setStripeSessionId] = useState<string | null>(null)
+  const [promoCode, setPromoCode] = useState('')
+  const [codeInput, setCodeInput] = useState('')
+  const [codeError, setCodeError] = useState('')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [showCodeField, setShowCodeField] = useState(false)
+
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [hasBrand, setHasBrand] = useState<'existing' | 'fresh' | null>(null)
-  const [promoCode, setPromoCode] = useState('')
   const [generating, setGenerating] = useState(false)
   const [brief, setBrief] = useState<Record<string, unknown> | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [step])
+  }, [step, access])
 
-  // Auto-generate after Stripe redirect
+  // Grant access on Stripe return
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const stripeSessionId = params.get('session_id')
-    if (stripeSessionId) {
-      setGenerating(true)
-      fetch('/api/generate-brief', {
+    const sid = params.get('session_id')
+    if (sid) {
+      setStripeSessionId(sid)
+      setAccess(true)
+    }
+  }, [])
+
+  const handleUseCode = () => {
+    const code = codeInput.trim().toUpperCase()
+    if (!code) { setCodeError('Please enter a code.'); return }
+    setPromoCode(code)
+    setAccess(true)
+  }
+
+  const handlePay = async () => {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, businessName, hasBrand, stripeSessionId, ...answers }),
+        body: JSON.stringify({ origin: window.location.origin }),
       })
-        .then(r => r.json())
-        .then(data => {
-          setSessionId(data.sessionId || null)
-          setBrief(data.brief)
-        })
-        .catch(() => alert('Something went wrong generating your brief. Please contact support.'))
-        .finally(() => setGenerating(false))
+      const { url, error } = await res.json()
+      if (error || !url) { alert(error || 'Could not create checkout session.'); return }
+      window.location.href = url
+    } catch {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setCheckoutLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }
 
   const f = (key: string) => ({
     value: answers[key] || '',
     onChange: (v: string) => setAnswers(prev => ({ ...prev, [key]: v })),
   })
 
-  const generateBrief = async (opts: { promoCode?: string; stripeSessionId?: string } = {}) => {
+  const generateBrief = async () => {
     setGenerating(true)
     try {
-      const payload = { fullName, email, businessName, hasBrand, ...answers, ...opts }
+      const payload = {
+        fullName, email, businessName, hasBrand, ...answers,
+        ...(promoCode ? { promoCode } : {}),
+        ...(stripeSessionId ? { stripeSessionId } : {}),
+      }
       const res = await fetch('/api/generate-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,33 +121,74 @@ export default function Questionnaire() {
     }
   }
 
-  const handleGenerate = async () => {
-    if (promoCode.trim()) {
-      await generateBrief({ promoCode: promoCode.trim() })
-    } else {
-      // Redirect to Stripe checkout
-      setGenerating(true)
-      try {
-        const res = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ origin: window.location.origin }),
-        })
-        const { url, error } = await res.json()
-        if (error || !url) { alert(error || 'Could not create checkout session.'); return }
-        window.location.href = url
-      } catch {
-        alert('Something went wrong. Please try again.')
-      } finally {
-        setGenerating(false)
-      }
-    }
-  }
-
   const progress = (step / sections.length) * 100
 
   if (brief) {
     return <BrandBrief brief={brief} name={fullName.split(' ')[0]} fullName={fullName} sessionId={sessionId} onBack={() => setBrief(null)} />
+  }
+
+  // --- Gate screen ---
+  if (!access) {
+    return (
+      <main className="min-h-screen px-6 py-12">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-bone/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-4xl font-extrabold text-ink font-display leading-tight">
+                Welcome. Let&apos;s uncover the <span className="italic text-coral">you</span> brand.
+              </h1>
+              <p className="font-body text-ink/80 leading-relaxed">
+                This isn&apos;t a form — it&apos;s closer to a conversation. Over the next few sections,
+                I&apos;ll ask you about your story, the people you serve, your voice, your vision, your
+                style, and how you want to show up. Think of it as career therapy: the more you share,
+                the more your brand will sound like <em>you</em>.
+              </p>
+              <p className="font-body text-ink/80 leading-relaxed">
+                There are no right answers. Don&apos;t write what sounds impressive — write what&apos;s
+                true. The unexpected, personal details are usually the ones that make people fall in love
+                with a brand. Nothing is too small to mention.
+              </p>
+              <p className="font-body text-ink/80 leading-relaxed">
+                And if you&apos;re not quite in the role you want yet — answer as the version of you who
+                already is. That&apos;s how you start to become them.
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <button onClick={handlePay} disabled={checkoutLoading}
+                className="w-full btn-emboss px-6 py-4 rounded-xl bg-emerald text-bone font-body font-bold text-lg disabled:opacity-50">
+                {checkoutLoading ? 'Redirecting…' : 'Get Your Brand Brief — $297'}
+              </button>
+
+              {!showCodeField ? (
+                <button onClick={() => setShowCodeField(true)}
+                  className="w-full text-center font-body text-sm text-ink/50 underline underline-offset-2 hover:text-ink/70 transition-colors">
+                  Have a code?
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      className={inputClass + ' flex-1'}
+                      placeholder="XXXXX-XXXXX"
+                      value={codeInput}
+                      onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError('') }}
+                      onKeyDown={e => e.key === 'Enter' && handleUseCode()}
+                      autoFocus
+                    />
+                    <button onClick={handleUseCode}
+                      className="btn-emboss px-5 py-3 rounded-xl bg-coral text-bone font-body font-bold whitespace-nowrap">
+                      Use Code
+                    </button>
+                  </div>
+                  {codeError && <p className="text-red-600 font-body text-sm">{codeError}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -150,23 +215,8 @@ export default function Questionnaire() {
           {step === 0 && (
             <div className="space-y-6">
               <h1 className="text-4xl font-extrabold text-ink font-display leading-tight">
-                Welcome. Let&apos;s uncover the <span className="italic text-coral">you</span> brand.
+                Let&apos;s start with the basics.
               </h1>
-              <p className="font-body text-ink/80 leading-relaxed">
-                This isn&apos;t a form — it&apos;s closer to a conversation. Over the next few sections,
-                I&apos;ll ask you about your story, the people you serve, your voice, your vision, your
-                style, and how you want to show up. Think of it as career therapy: the more you share,
-                the more your brand will sound like <em>you</em>.
-              </p>
-              <p className="font-body text-ink/80 leading-relaxed">
-                There are no right answers. Don&apos;t write what sounds impressive — write what&apos;s
-                true. The unexpected, personal details are usually the ones that make people fall in love
-                with a brand. Nothing is too small to mention.
-              </p>
-              <p className="font-body text-ink/80 leading-relaxed">
-                And if you&apos;re not quite in the role you want yet — answer as the version of you who
-                already is. That&apos;s how you start to become them.
-              </p>
               <div className="pt-2 space-y-4">
                 <div>
                   <label className={labelClass}>What&apos;s your full name?</label>
@@ -185,12 +235,6 @@ export default function Questionnaire() {
                   <p className={helpClass}>If you have one. If not, no worries — we&apos;ll help you find it.</p>
                   <input className={inputClass} placeholder="Rivera Creative Co."
                     value={businessName} onChange={e => setBusinessName(e.target.value)} />
-                </div>
-                <div>
-                  <label className={labelClass}>Have a code? (optional)</label>
-                  <p className={helpClass}>If a studio or partner gave you an access code, enter it here.</p>
-                  <input className={inputClass} placeholder="XXXXX-XXXXX"
-                    value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} />
                 </div>
               </div>
             </div>
@@ -388,8 +432,9 @@ export default function Questionnaire() {
         </div>
 
         <div className="flex justify-between mt-8">
-          <button onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
-            className="btn-emboss px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium disabled:opacity-30">
+          <button
+            onClick={() => step === 0 ? setAccess(false) : setStep(s => s - 1)}
+            className="btn-emboss px-6 py-3 rounded-full border border-ink/20 bg-bone text-ink font-body font-medium">
             Back
           </button>
           {step < sections.length ? (
@@ -398,9 +443,9 @@ export default function Questionnaire() {
               {step === 0 ? 'Begin' : 'Next'}
             </button>
           ) : (
-            <button onClick={handleGenerate} disabled={generating}
+            <button onClick={generateBrief} disabled={generating}
               className="btn-emboss px-6 py-3 rounded-full bg-emerald text-bone font-body font-bold disabled:opacity-50">
-              {generating ? (promoCode.trim() ? 'Creating your brief…' : 'Redirecting to checkout…') : (promoCode.trim() ? 'Generate My Brand Brief →' : 'Continue to Payment →')}
+              {generating ? 'Creating your brief…' : 'Generate My Brand Brief →'}
             </button>
           )}
         </div>
